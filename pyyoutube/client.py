@@ -227,7 +227,8 @@ class Client:
                 timeout=self.timeout,
                 **kwargs,
             ) as r:
-                response = await r.read()
+                await r.read()
+            return r
         except web.HTTPError as e:
             raise PyYouTubeException(
                 ErrorMessage(status_code=ErrorCode.HTTP_ERROR, message=e.args[0])
