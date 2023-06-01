@@ -221,7 +221,7 @@ class Client:
             async with self.session.request(
                 method=method,
                 url=path,
-                params=params,
+                params={k: v for k, v in params.items() if v is not None},
                 data=data,
                 json=json,
                 timeout=self.timeout,
