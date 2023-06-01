@@ -216,7 +216,7 @@ class Client:
         # If json is dataclass convert to dict
         if isinstance(json, BaseModel):
             json = json.to_dict_ignore_none()
-
+        kwargs.pop("proxies", None)
         try:
             async with self.session.request(
                 method=method,
