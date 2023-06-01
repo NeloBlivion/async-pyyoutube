@@ -228,7 +228,7 @@ class Client:
                 **kwargs,
             ) as r:
                 await r.read()
-            return r
+            response = r
         except web.HTTPError as e:
             raise PyYouTubeException(
                 ErrorMessage(status_code=ErrorCode.HTTP_ERROR, message=e.args[0])
