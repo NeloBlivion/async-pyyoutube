@@ -224,7 +224,6 @@ class Client:
                 params=params,
                 data=data,
                 json=json,
-                proxies=self.proxies,
                 timeout=self.timeout,
                 **kwargs,
             ) as r:
@@ -401,7 +400,6 @@ class Client:
             client_secret=self.client_secret,
             authorization_response=authorization_response,
             code=code,
-            proxies=self.proxies,
         )
         self.access_token = token["access_token"]
         self.refresh_token = token.get("refresh_token")
