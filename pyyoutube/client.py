@@ -10,6 +10,9 @@ from requests.sessions import merge_setting
 from requests.structures import CaseInsensitiveDict
 from requests_oauthlib.oauth2_session import OAuth2Session
 
+import aiohttp
+from aiohttp import web
+
 import pyyoutube.resources as resources
 from pyyoutube.models.base import BaseModel
 from pyyoutube.error import ErrorCode, ErrorMessage, PyYouTubeException
@@ -113,8 +116,8 @@ class Client:
         self.proxies = proxies
         self.headers = headers
 
-        self.session = requests.Session()
-        self.merge_headers()
+        self.session = aiohttp.ClientSession()
+        # self.merge_headers()
 
         # Auth settings
         if not (
@@ -137,7 +140,7 @@ class Client:
             )
 
     @staticmethod
-    def parse_response(response: Response) -> dict:
+    async def parse_response(response: Response) -> dict:
         """Response parser
 
         Args:
@@ -150,12 +153,12 @@ class Client:
         Raises:
             PyYouTubeException: If response has errors.
         """
-        data = response.json()
+        data = await response.json()
         if "error" in data:
-            raise PyYouTubeException(response)
+            raise PyYouTubeException(response, data)
         return data
 
-    def request(
+    async def request(
         self,
         path: str,
         method: str = "GET",
@@ -215,7 +218,7 @@ class Client:
             json = json.to_dict_ignore_none()
 
         try:
-            response = self.session.request(
+            async with self.session.request(
                 method=method,
                 url=path,
                 params=params,
@@ -224,8 +227,9 @@ class Client:
                 proxies=self.proxies,
                 timeout=self.timeout,
                 **kwargs,
-            )
-        except requests.HTTPError as e:
+            ) as r:
+                response = await r.read()
+        except web.HTTPError as e:
             raise PyYouTubeException(
                 ErrorMessage(status_code=ErrorCode.HTTP_ERROR, message=e.args[0])
             )
@@ -403,7 +407,7 @@ class Client:
         self.refresh_token = token.get("refresh_token")
         return token if return_json else AccessToken.from_dict(token)
 
-    def refresh_access_token(
+    async def refresh_access_token(
         self, refresh_token: str, return_json: bool = False, **kwargs
     ) -> Union[dict, AccessToken]:
         """Refresh new access token.
@@ -419,7 +423,7 @@ class Client:
         Returns:
             Access token data.
         """
-        response = self.request(
+        response = await self.request(
             method="POST",
             path=self.EXCHANGE_ACCESS_TOKEN_URL,
             data={
@@ -431,10 +435,10 @@ class Client:
             enforce_auth=False,
             **kwargs,
         )
-        data = self.parse_response(response)
+        data = await self.parse_response(response)
         return data if return_json else AccessToken.from_dict(data)
 
-    def revoke_access_token(
+    async def revoke_access_token(
         self,
         token: str,
     ) -> bool:
@@ -454,7 +458,7 @@ class Client:
         Raises:
             PyYouTubeException: When occur errors.
         """
-        response = self.request(
+        response = await self.request(
             method="POST",
             path=self.REVOKE_TOKEN_URL,
             params={"token": token},
@@ -462,4 +466,4 @@ class Client:
         )
         if response.ok:
             return True
-        self.parse_response(response)
+        await self.parse_response(response)

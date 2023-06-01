@@ -32,11 +32,12 @@ class PyYouTubeException(Exception):
     'message': 'No filter selected. Expected one of: forUsername, managedByMe, categoryId, mine, mySubscribers, id, idParam'}}
     """
 
-    def __init__(self, response: Optional[Union[ErrorMessage, Response]]):
+    def __init__(self, response: Optional[Union[ErrorMessage, Response]], json: Optional[dict] = None):
         self.status_code: Optional[int] = None
         self.error_type: Optional[str] = None
         self.message: Optional[str] = None
         self.response: Optional[Union[ErrorMessage, Response]] = response
+        self.json: Optional[dict] = json
         self.error_handler()
 
     def error_handler(self):
@@ -49,14 +50,14 @@ class PyYouTubeException(Exception):
             self.message = self.response.message
             self.error_type = "PyYouTubeException"
         elif isinstance(self.response, Response):
-            res_data = self.response.json()
+            res_data = self.json or {}
             if "error" in res_data:
                 error = res_data["error"]
                 if isinstance(error, dict):
                     self.status_code = res_data["error"]["code"]
                     self.message = res_data["error"]["message"]
                 else:
-                    self.status_code = self.response.status_code
+                    self.status_code = self.response.status
                     self.message = error
                 self.error_type = "YouTubeException"
 

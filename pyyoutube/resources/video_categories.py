@@ -16,7 +16,7 @@ class VideoCategoriesResource(Resource):
     References: https://developers.google.com/youtube/v3/docs/videoCategories
     """
 
-    def list(
+    async def list(
         self,
         parts: Optional[Union[str, list, tuple, set]] = None,
         category_id: Optional[Union[str, list, tuple, set]] = None,
@@ -67,6 +67,6 @@ class VideoCategoriesResource(Resource):
                     message=f"Specify at least one of category_id or region_code",
                 )
             )
-        response = self._client.request(path="videoCategories", params=params)
-        data = self._client.parse_response(response=response)
+        response = await self._client.request(path="videoCategories", params=params)
+        data = await self._client.parse_response(response=response)
         return data if return_json else VideoCategoryListResponse.from_dict(data)
