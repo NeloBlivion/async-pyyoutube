@@ -16,7 +16,7 @@ class CommentsResource(Resource):
     References: https://developers.google.com/youtube/v3/docs/comments
     """
 
-    await def list(
+    async def list(
         self,
         parts: Optional[Union[str, list, tuple, set]] = None,
         comment_id: Optional[Union[str, list, tuple, set]] = None,
@@ -84,7 +84,7 @@ class CommentsResource(Resource):
         data = await self._client.parse_response(response=response)
         return data if return_json else CommentListResponse.from_dict(data)
 
-    await def insert(
+    async def insert(
         self,
         body: Union[dict, Comment],
         parts: Optional[Union[str, list, tuple, set]] = None,
